@@ -1,0 +1,7 @@
+{
+  "appTitle": "المنازل",
+  "housesPageTitle": "المنازل",
+  "noHousesFound": "لم يتم العثور على منازل.",
+  "errorLoadingHouses": "خطأ: {error}",
+  "billDetails": "{amount} - {date}"
+}
