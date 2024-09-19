@@ -5,8 +5,10 @@ import 'dart:convert';
 
 class UserInvoicePage extends StatefulWidget {
   final String token; // Add this line to accept the token
-
-  UserInvoicePage({required this.token}); // Update constructor to accept token
+  final int houseid; // Add this line to accept the house ID
+  UserInvoicePage(
+      {required this.token,
+      required this.houseid}); // Update constructor to accept token and house ID
 
   @override
   _UserInvoicePageState createState() => _UserInvoicePageState();
@@ -25,7 +27,7 @@ class _UserInvoicePageState extends State<UserInvoicePage> {
   Future<void> fetchInvoices() async {
     try {
       final response = await http.get(
-        Uri.parse('https://localhost:7046/api/getlistinvoices'),
+        Uri.parse('https://localhost:7046/api/getinvoices'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${widget.token}', // Use the passed token
@@ -33,8 +35,19 @@ class _UserInvoicePageState extends State<UserInvoicePage> {
       );
 
       if (response.statusCode == 200) {
+        // Parse the response body
+        List<dynamic> allInvoices = json.decode(response.body);
+
+        // Filter invoices by the house_id inside generator_house_subscription
+        List<dynamic> filteredInvoices = allInvoices.where((invoice) {
+          final generatorHouseSubscription =
+              invoice['generator_house_subscription'];
+          return generatorHouseSubscription != null &&
+              generatorHouseSubscription['house_id'] == widget.houseid;
+        }).toList();
+
         setState(() {
-          invoices = json.decode(response.body);
+          invoices = filteredInvoices;
           isLoading = false;
         });
       } else {

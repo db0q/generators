@@ -172,7 +172,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
                           color: Colors.teal,
                         ),
                         onTap: subscription['status'] == 0
-                            ? () => _paySubscription(subscription['id'])
+                            ? () => _paySubscription(subscription['house_id'])
                             : null, // Disable tap for paid subscriptions
                       ),
                     ],

@@ -2,12 +2,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:generators/Widgets/homepagewidget.dart';
+import 'package:generators/screens/owner/gen_admin_home.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/gen_admin_home.dart';
+
+import 'reser_password.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -30,7 +32,7 @@ class _MainPageState extends State<MainPage> {
       TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _generatorIdController = TextEditingController();
+  final TextEditingController _nationalId = TextEditingController();
 
   int _selectedIndex = 0;
   final baseUrl = 'https://localhost:7046/api/';
@@ -188,7 +190,9 @@ class _MainPageState extends State<MainPage> {
           'password': _registerPasswordController.text,
           'fullname': _fullNameController.text,
           'address': _addressController.text,
-          'generator_id': _generatorIdController.text,
+          'role': 'User',
+          'role_id': '5',
+          'national_id': _nationalId.text,
         },
       );
 
@@ -201,10 +205,9 @@ class _MainPageState extends State<MainPage> {
         final String phone = user['phone'];
         final district = user['district'];
         final String districtName = district['name'];
-        final String role = user['role']['name'];
+        final String role = 'User';
         final String province = user['province']['name'];
 
-        // Registration successful, navigate to the HomePage
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -271,8 +274,7 @@ class _MainPageState extends State<MainPage> {
                     title: _selectedIndex == 1
                         ? const Text(
                             'التسجيل',
-                            style: TextStyle(
-                                fontSize: 12), // Adjust font size here
+                            style: TextStyle(fontSize: 12),
                           )
                         : const SizedBox.shrink(),
                     activeColor: Colors.teal,
@@ -326,7 +328,7 @@ class _MainPageState extends State<MainPage> {
           TextFormField(
             controller: _loginPhoneController,
             decoration: InputDecoration(
-              labelText: 'الرقم الهاتف او اسم المستخدم',
+              labelText: 'الرقم الهاتف ',
               labelStyle: TextStyle(fontSize: 13),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
@@ -342,7 +344,7 @@ class _MainPageState extends State<MainPage> {
             style: GoogleFonts.almarai(),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return ' الرجاء ادخال رقم الهاتف او اسم المستخدم صالح';
+                return ' الرجاء ادخال رقم الهاتف';
               }
 
               return null;
@@ -395,7 +397,7 @@ class _MainPageState extends State<MainPage> {
           ),
           const SizedBox(height: 12.0),
           TextButton(
-            onPressed: _resetPassword, // Define this function
+            onPressed: _resetPassword,
             child: Text(
               'هل نسيت كلمة المرور؟',
               style: GoogleFonts.cairo(
@@ -414,12 +416,12 @@ class _MainPageState extends State<MainPage> {
 
   void _resetPassword() {
     // Navigate to ResetPasswordPage
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => (),
-    //   ),
-    // );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResetPasswordPage(),
+      ),
+    );
   }
 
   Widget _buildRegistrationForm() {
@@ -558,9 +560,9 @@ class _MainPageState extends State<MainPage> {
           ),
           const SizedBox(height: 16.0),
           TextFormField(
-            controller: _generatorIdController,
+            controller: _nationalId,
             decoration: InputDecoration(
-              labelText: 'رقم المولد',
+              labelText: 'رقم البطاقة الموحدة',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
@@ -576,10 +578,10 @@ class _MainPageState extends State<MainPage> {
             style: GoogleFonts.almarai(),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'الرجاء ادخال رقم المولد';
+                return 'الرجاء ادخال رقم البطاقة الموحدة';
               }
-              if (!RegExp(r'^\d+$').hasMatch(value)) {
-                return 'الرجاء ادخال رقم مولد صحيح';
+              if (RegExp(r'^\d{12}$').hasMatch(value)) {
+                return 'الرجاء ادخال رقم البطاقة الصحيح';
               }
               return null;
             },

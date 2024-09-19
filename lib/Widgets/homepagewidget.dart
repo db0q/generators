@@ -1,12 +1,11 @@
-// import 'dart:ffi';
+import 'dart:async';
 import 'package:flutter/material.dart';
-// import 'package:generators/Widgets/login_page.dart';
-import 'package:generators/screens/subscriptions.dart';
-import 'package:generators/screens/user_info.dart';
+import 'package:generators/screens/user/subscriptions.dart';
+import '../screens/user_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-// import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/chat_page.dart'; // Update with the correct path
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -16,6 +15,7 @@ class HomePage extends StatefulWidget {
   final String? districtName;
   final String? province;
   final String? role;
+
   const HomePage({
     super.key,
     required this.token,
@@ -34,11 +34,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<dynamic> houses = [];
   bool isLoading = true;
+  bool _showMessage = false;
 
   @override
   void initState() {
     super.initState();
     fetchHouses();
+    _displayMessage();
   }
 
   Future<void> fetchHouses() async {
@@ -66,56 +68,102 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _displayMessage() {
+    setState(() {
+      _showMessage = true;
+    });
+
+    // Hide the message after 3 seconds
+    Timer(Duration(seconds: 3), () {
+      setState(() {
+        _showMessage = false;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "الصفحة الرئيسية",
-          style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.teal,
-        elevation: 4.0,
-      ),
-      body: Column(
+          // title: Text(
+          //   "الصفحة الرئيسية",
+          //   style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold),
+          // ),
+          // centerTitle: true,
+          // backgroundColor: Colors.teal,
+          // elevation: 4.0,
+          automaticallyImplyLeading: false),
+      body: Stack(
         children: [
-          // User Avatar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserInfoPage(
-                      token: widget.token,
-                      displayName: widget.displayname!,
-                      username: widget.username!, // Fixed this line
-                      phone: widget.phone!,
-                      districtName: widget.districtName!,
-                      province: widget.province!,
-                      role: widget.role!,
+          Column(
+            children: [
+              // User Avatar
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserInfoPage(
+                          token: widget.token,
+                          displayName: widget.displayname!,
+                          username: widget.username!,
+                          phone: widget.phone!,
+                          districtName: widget.districtName!,
+                          province: widget.province!,
+                          role: widget.role!,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const CircleAvatar(
+                    radius: 40,
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: Colors.white,
                     ),
                   ),
-                );
-              },
-              child: const CircleAvatar(
-                radius: 40,
-                child: Icon(
-                  Icons.person,
-                  size: 40,
-                  color: Colors.white,
+                ),
+              ),
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildHousesContainer(houses),
+              ),
+            ],
+          ),
+          // Message Display
+          if (_showMessage)
+            Positioned(
+              bottom: 30, // Adjust as needed to position the message
+              right: 80, // Adjust to position it to the left of the button
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'هل لديك شكوى ؟',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _buildHousesContainer(houses),
-          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatPage(),
+            ),
+          );
+        },
+        backgroundColor: Colors.teal,
+        child: const Icon(Icons.chat),
       ),
     );
   }
