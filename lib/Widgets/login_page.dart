@@ -35,7 +35,7 @@ class _MainPageState extends State<MainPage> {
   final TextEditingController _nationalId = TextEditingController();
 
   int _selectedIndex = 0;
-  final baseUrl = 'https://localhost:7046/api/';
+  final baseUrl = 'https://apigenerators.sooqgate.com/api/';
 
   void _login() async {
     String? userName = _loginPhoneController.text.trim();

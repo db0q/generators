@@ -27,7 +27,7 @@ class _UserInvoicePageState extends State<UserInvoicePage> {
   Future<void> fetchInvoices() async {
     try {
       final response = await http.get(
-        Uri.parse('https://localhost:7046/api/getinvoices'),
+        Uri.parse('https://apigenerators.sooqgate.com/api/getinvoices'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${widget.token}', // Use the passed token

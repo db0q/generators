@@ -46,7 +46,7 @@ class _UserDataPageState extends State<UserDataPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://localhost:7046/api/gens'),
+        Uri.parse('https://apigenerators.sooqgate.com/api/gens'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -132,7 +132,7 @@ class _UserDataPageState extends State<UserDataPage> {
 
     try {
       final addSubscriptionResponse = await http.post(
-        Uri.parse('https://localhost:7046/api/add_subscription'),
+        Uri.parse('https://apigenerators.sooqgate.com/api/add_subscription'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -189,7 +189,7 @@ class _UserDataPageState extends State<UserDataPage> {
     setState(() => _isLoading = true);
 
     final response = await http.put(
-      Uri.parse('https://localhost:7046/api/update_user_data'),
+      Uri.parse('https://apigenerators.sooqgate.com/api/update_user_data'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/x-www-form-urlencoded',

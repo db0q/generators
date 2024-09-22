@@ -36,7 +36,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://localhost:7046/api/subscriptions?house_id=${widget.houseId}'),
+            'https://apigenerators.sooqgate.com/api/subscriptions?house_id=${widget.houseId}'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -69,7 +69,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
 
   void _paySubscription(String subscriptionId) async {
     final response = await http.post(
-      Uri.parse('https://localhost:7046/api/pay_subscription'),
+      Uri.parse('https://apigenerators.sooqgate.com/api/pay_subscription'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'Content-Type': 'application/json',

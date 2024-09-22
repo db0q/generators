@@ -45,7 +45,7 @@ class _AddUserPageState extends State<AddUserPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://localhost:7046/api/gens'),
+        Uri.parse('https://apigenerators.sooqgate.com/api/gens'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
         },
@@ -108,7 +108,7 @@ class _AddUserPageState extends State<AddUserPage> {
       };
 
       final response = await http.post(
-        Uri.parse('https://localhost:7046/api/add_user'),
+        Uri.parse('https://apigenerators.sooqgate.com/api/add_user'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'Content-Type': 'application/x-www-form-urlencoded',

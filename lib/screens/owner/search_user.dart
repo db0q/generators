@@ -29,7 +29,7 @@ class _SearchUserPageState extends State<SearchUserPage> {
     setState(() => _isLoading = true);
 
     final response = await http.get(
-      Uri.parse('https://localhost:7046/api/find/$phone'),
+      Uri.parse('https://apigenerators.sooqgate.com/api/find/$phone'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },

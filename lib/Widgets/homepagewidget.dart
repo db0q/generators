@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchHouses() async {
     final response = await http.get(
-      Uri.parse('https://localhost:7046/api/houses'),
+      Uri.parse('https://apigenerators.sooqgate.com/api/houses'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },
@@ -85,13 +85,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          // title: Text(
-          //   "الصفحة الرئيسية",
-          //   style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold),
-          // ),
-          // centerTitle: true,
-          // backgroundColor: Colors.teal,
-          // elevation: 4.0,
+          title: Text(
+            "الصفحة الرئيسية",
+            style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.teal,
+          elevation: 4.0,
           automaticallyImplyLeading: false),
       body: Stack(
         children: [
@@ -176,8 +176,7 @@ class _HomePageState extends State<HomePage> {
               child: Text(
                 'لا توجد بيوت مسجلة',
                 style: GoogleFonts.almarai(
-                    fontSize: 18,
-                    color: const Color.fromARGB(255, 255, 255, 255)),
+                    fontSize: 18, color: const Color.fromARGB(255, 97, 97, 97)),
               ),
             )
           : ListView.builder(

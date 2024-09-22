@@ -46,7 +46,7 @@ class _SubscriptionsPageState extends State<SubscriptionsAdminPage> {
     setState(() => isLoading = true);
 
     final response = await http.get(
-      Uri.parse('https://localhost:7046/api/subscriptions'),
+      Uri.parse('https://apigenerators.sooqgate.com/api/subscriptions'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },
