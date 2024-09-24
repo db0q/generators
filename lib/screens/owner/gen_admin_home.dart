@@ -24,6 +24,7 @@ class SubscriptionsAdminPage extends StatefulWidget {
     required this.districtName,
     required this.province,
     required this.role,
+    required userId,
   });
 
   @override

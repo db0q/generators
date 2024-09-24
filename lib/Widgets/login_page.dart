@@ -73,6 +73,7 @@ class _MainPageState extends State<MainPage> {
         final responseData = json.decode(responseBody);
         final String token = responseData['token'];
         final user = responseData['user'];
+        final int userId = user?['id'];
         final String? username = user?['user_name'] ?? 'Unknown';
         final String? displayname = user?['display_name'] ?? 'Unknown';
         final String? phone = user?['phone'] ?? 'Unknown';
@@ -98,6 +99,7 @@ class _MainPageState extends State<MainPage> {
               builder: (context) => SubscriptionsAdminPage(
                 token: token,
                 username: username!,
+                userId: userId,
                 displayname: displayname!,
                 phone: phone!,
                 districtName: districtName!,
@@ -113,6 +115,7 @@ class _MainPageState extends State<MainPage> {
             MaterialPageRoute(
               builder: (context) => HomePage(
                 token: token,
+                userId: userId,
                 username: username,
                 displayname: displayname,
                 phone: phone,
@@ -159,6 +162,7 @@ class _MainPageState extends State<MainPage> {
       String? districtName = prefs.getString('districtName');
       String? province = prefs.getString('province');
       String? role = prefs.getString('role');
+      int userId = prefs.getInt('userId') ?? 0;
 
       if (token != null) {
         Navigator.pushReplacement(
@@ -172,6 +176,7 @@ class _MainPageState extends State<MainPage> {
               districtName: districtName,
               province: province,
               role: role,
+              userId: userId,
             ),
           ),
         );
@@ -207,6 +212,7 @@ class _MainPageState extends State<MainPage> {
         final String districtName = district['name'];
         final String role = 'User';
         final String province = user['province']['name'];
+        final userId = user['id'];
 
         Navigator.pushReplacement(
           context,
@@ -219,6 +225,7 @@ class _MainPageState extends State<MainPage> {
                     districtName: districtName,
                     province: province,
                     role: role,
+                    userId: userId,
                   )),
         );
       } else {

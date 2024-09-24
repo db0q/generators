@@ -5,11 +5,12 @@ import '../screens/user_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../screens/chat_page.dart'; // Update with the correct path
+import '../screens/user/ticket_options_page.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
   final String? username;
+  final int userId;
   final String? displayname;
   final String? phone;
   final String? districtName;
@@ -19,6 +20,7 @@ class HomePage extends StatefulWidget {
   const HomePage({
     super.key,
     required this.token,
+    required this.userId,
     required this.username,
     required this.displayname,
     required this.phone,
@@ -158,7 +160,10 @@ class _HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ChatPage(),
+              builder: (context) => TicketOptionsPage(
+                token: widget.token,
+                userId: widget.userId, // Pass the token to TicketOptionsPage
+              ),
             ),
           );
         },
