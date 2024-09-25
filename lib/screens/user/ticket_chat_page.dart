@@ -4,7 +4,7 @@ import 'dart:convert';
 
 class TicketChatPage extends StatefulWidget {
   final String token;
-  final int userId; // Added userId to the constructor
+  final int userId;
 
   TicketChatPage({required this.token, required this.userId});
 
@@ -18,12 +18,15 @@ class _TicketChatPageState extends State<TicketChatPage> {
   bool _isSubmitting = false;
 
   Future<void> _submitTicket() async {
-    final title = _titleController.text;
-    final description = _descriptionController.text;
+    final title = _titleController.text.trim();
+    final description = _descriptionController.text.trim();
 
     if (title.isEmpty || description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter both title and description')),
+        const SnackBar(
+          content: Text('Please enter both title and description'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       return;
     }
@@ -43,36 +46,38 @@ class _TicketChatPageState extends State<TicketChatPage> {
       request.headers
           .set(HttpHeaders.authorizationHeader, 'Bearer ${widget.token}');
 
-      // Create the request body with userId, title, and description as form parameters
       String body =
           'userId=${widget.userId}&title=${Uri.encodeComponent(title)}&description=${Uri.encodeComponent(description)}';
       request.write(body);
 
       final HttpClientResponse response = await request.close();
       if (response.statusCode == 200) {
-        // Handling the response
         String responseBody = await response.transform(utf8.decoder).join();
-        print('Ticket submitted successfully: $responseBody');
+        print('تم ارسال الرسالة بنجاح: $responseBody');
 
-        // Clear the form after successful submission
         setState(() {
           _titleController.clear();
           _descriptionController.clear();
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ticket submitted successfully')),
+          const SnackBar(content: Text('تم ارسال الرسالة')),
         );
-      } else {
+      } else if (response.statusCode == 400) {
         print('Failed to submit ticket: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit ticket')),
+          const SnackBar(content: Text('الرجاْ تغيير كلمات الرسالة')),
+        );
+      } else {
+        print('فشل ارسال الرسالة: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('فشل ارسال الرسالة')),
         );
       }
     } catch (e) {
       print('Error submitting ticket: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error submitting ticket')),
+        const SnackBar(content: Text('Error submitting ticket')),
       );
     } finally {
       setState(() {
@@ -85,36 +90,112 @@ class _TicketChatPageState extends State<TicketChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ticket '),
+        title: const Text('ارسال'),
         backgroundColor: Colors.teal,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
+            Text(
+              'انشئ شكوى جديدة',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal.shade700,
               ),
             ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              decoration: InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
+            const SizedBox(height: 20),
+
+            // Title Input
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              maxLines: 5,
-            ),
-            SizedBox(height: 16),
-            _isSubmitting
-                ? CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _submitTicket,
-                    child: Text('Submit Ticket'),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: 'العنوان',
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.teal,
+                    ),
+                    border: InputBorder.none,
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    hintText: 'ادخل عنوان الشكوى',
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
                   ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Description Input
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(
+                    labelText: 'الوصف',
+                    labelStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.teal,
+                    ),
+                    border: InputBorder.none,
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    hintText: 'صف المشكلة او الشكوى',
+                    hintStyle: TextStyle(color: Colors.grey.shade500),
+                  ),
+                  maxLines: 5,
+                  minLines: 3,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Submit Button
+            Center(
+              child: _isSubmitting
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton.icon(
+                      onPressed: _submitTicket,
+                      icon: const Icon(Icons.send,
+                          size: 24, color: Colors.black87),
+                      label: Text('ارسال للدعم',
+                          style: TextStyle(
+                              color: const Color.fromARGB(255, 221, 221, 221))),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 50,
+                          vertical: 15,
+                        ),
+                        backgroundColor: Colors.teal,
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 5,
+                      ),
+                    ),
+            ),
           ],
         ),
       ),

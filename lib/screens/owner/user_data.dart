@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class UserDataPage extends StatefulWidget {
   final Map<String, dynamic> userInfo;
   final String token;
-  final Map<String?, dynamic> genids;
+  final List<String> genids;
   const UserDataPage({
     super.key,
     required this.userInfo,
@@ -33,7 +33,7 @@ class _UserDataPageState extends State<UserDataPage> {
     _houses = List<Map<String, dynamic>>.from(widget.userInfo['houses'] ?? []);
     _subscriptions =
         List<Map<String, dynamic>>.from(widget.userInfo['subscriptions'] ?? []);
-    _generatorIds = List<String>.from(widget.genids.keys);
+    _generatorIds = List<String>.from(widget.genids);
     if (_generatorIds.isNotEmpty) {
       _selectedGeneratorId = _generatorIds[0];
     }

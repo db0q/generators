@@ -5,7 +5,8 @@ import 'user_data.dart';
 
 class SearchUserPage extends StatefulWidget {
   final String token;
-  final genids;
+  final List<String> genids;
+
   const SearchUserPage({super.key, required this.token, required this.genids});
 
   @override
@@ -28,27 +29,38 @@ class _SearchUserPageState extends State<SearchUserPage> {
 
     setState(() => _isLoading = true);
 
-    final response = await http.get(
-      Uri.parse('https://apigenerators.sooqgate.com/api/find/$phone'),
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-      },
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('https://apigenerators.sooqgate.com/api/find/$phone'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
 
-    setState(() => _isLoading = false);
-    print(response.statusCode);
+      setState(() => _isLoading = false);
 
-    if (response.statusCode == 200) {
-      final userData = json.decode(response.body);
-      print(userData);
-      setState(() {
-        _userInfo = userData; // Display user information
-      });
-    } else {
+      if (response.statusCode == 200) {
+        final userData = json.decode(response.body);
+        if (userData['found']) {
+          setState(() {
+            _userInfo = userData['user']; // Extract user object
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('لم يتم العثور على المستخدم')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل في العثور على المستخدم: ${response.statusCode}'),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('فشل في العثور على المستخدم: ${response.statusCode}'),
-        ),
+        const SnackBar(content: Text('حدث خطأ أثناء البحث عن المستخدم')),
       );
     }
   }
@@ -92,9 +104,13 @@ class _SearchUserPageState extends State<SearchUserPage> {
                   'معلومات المستخدم:',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                Text('اسم المستخدم: ${_userInfo!['user']['user_name']}'),
-                Text('الاسم المعروض: ${_userInfo!['user']["name"]}'),
-                Text('الهاتف: ${_userInfo!['user']['phone']}'),
+                Text('اسم المستخدم: ${_userInfo!['user_name']}'),
+                Text('الاسم المعروض: ${_userInfo!['name']}'),
+                Text('الهاتف: ${_userInfo!['phone']}'),
+                Text(
+                    'المجلس المحلي: ${_userInfo!['district_council']['name']}'),
+                Text(
+                    'مجلس المحافظة: ${_userInfo!['district_council']['provincial_council']['name']}'),
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
