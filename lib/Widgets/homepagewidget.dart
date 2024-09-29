@@ -87,10 +87,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: Text(
-            "الصفحة الرئيسية",
-            style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
           centerTitle: true,
           backgroundColor: Colors.teal,
           elevation: 4.0,

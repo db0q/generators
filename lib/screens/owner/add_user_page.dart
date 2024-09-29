@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -56,12 +57,9 @@ class _AddUserPageState extends State<AddUserPage> {
         setState(() {
           _generators = data.cast<Map<String, dynamic>>();
           if (_generators.isNotEmpty) {
-            // Extract all generator IDs
             _generatorIds = _generators
                 .map((gen) => gen['electric_generator_id'].toString())
                 .toList();
-
-            // Optionally set the first ID as selected
             _selectedGeneratorId =
                 _generatorIds.isNotEmpty ? _generatorIds[0] : null;
           } else {
@@ -137,6 +135,22 @@ class _AddUserPageState extends State<AddUserPage> {
     }
   }
 
+  InputDecoration _inputDecoration(String labelText, IconData icon) {
+    return InputDecoration(
+      labelText: labelText,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      filled: true,
+      fillColor: Colors.grey[200],
+      prefixIcon: Icon(icon),
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 15.0,
+        horizontal: 20.0,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,22 +171,26 @@ class _AddUserPageState extends State<AddUserPage> {
               children: [
                 TextFormField(
                   controller: _displayNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'الاسم الكامل',
-                  ),
+                  decoration: _inputDecoration('الاسم الكامل', Icons.person),
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.almarai(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'يرجى إدخال الاسم الكامل';
+                      return 'الرجاء ادخال الاسم الكامل';
                     }
                     return null;
                   },
                 ),
+                SizedBox(height: 16), // Add spacing between fields
                 TextFormField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'رقم الهاتف',
-                  ),
+                  decoration: _inputDecoration('رقم الهاتف', Icons.phone),
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.almarai(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'يرجى إدخال رقم الهاتف';
@@ -180,12 +198,16 @@ class _AddUserPageState extends State<AddUserPage> {
                     return null;
                   },
                 ),
+                SizedBox(height: 16),
                 TextFormField(
                   controller: _ampController,
-                  decoration: const InputDecoration(
-                    labelText: 'الأمبير',
-                  ),
+                  decoration: _inputDecoration('الأمبير',
+                      Icons.electric_bolt), // Change to an appropriate icon
                   keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.almarai(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'يرجى إدخال قيمة الأمبير';
@@ -193,11 +215,13 @@ class _AddUserPageState extends State<AddUserPage> {
                     return null;
                   },
                 ),
+                SizedBox(height: 16),
                 TextFormField(
                   controller: _addressController,
-                  decoration: const InputDecoration(
-                    labelText: 'العنوان',
-                  ),
+                  decoration: _inputDecoration('العنوان', Icons.location_on),
+                  textDirection: TextDirection.rtl,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.almarai(),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'يرجى إدخال العنوان';
@@ -208,12 +232,17 @@ class _AddUserPageState extends State<AddUserPage> {
                 SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: _selectedGeneratorId,
-                  hint: Text('اختر معرف المولد'),
+                  hint: Text(
+                    'اختر معرف المولد',
+                    style: GoogleFonts.almarai(), // Match the font style
+                  ),
                   items: _generators.map((generator) {
                     return DropdownMenuItem<String>(
                       value: generator['electric_generator_id'].toString(),
                       child: Text(
                         'ID: ${generator['electric_generator_id']} - ${generator['full_address']}',
+                        style: GoogleFonts.almarai()
+                            .copyWith(color: Colors.grey[700]),
                       ),
                     );
                   }).toList(),
@@ -228,7 +257,20 @@ class _AddUserPageState extends State<AddUserPage> {
                     }
                     return null;
                   },
+                  decoration: InputDecoration(
+                    labelText: 'اختر معرف المولد',
+                    prefixIcon: Icon(Icons
+                        .electrical_services), // Change to an appropriate icon
+                    border:
+                        OutlineInputBorder(), // Use an outline border similar to TextFormField
+                    contentPadding: EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 10), // Match padding
+                    hintStyle: TextStyle(color: Colors.grey),
+                    // Customize hint style
+                  ),
+                  style: GoogleFonts.almarai(), // Match the font style
                 ),
+
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _addUser,

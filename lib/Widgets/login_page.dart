@@ -13,7 +13,6 @@ import 'reser_password.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
-
   @override
   State<MainPage> createState() => _MainPageState();
 }
@@ -33,6 +32,83 @@ class _MainPageState extends State<MainPage> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _nationalId = TextEditingController();
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _provinces = [];
+  List<Map<String, dynamic>> _districts = [];
+  String? _selectedProvince;
+  String? _selectedDistrict;
+  List<String> _generatorIds = [];
+
+  Future<void> _fetchproviance() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://apigenerators.sooqgate.com/api/getlistprovinces'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        setState(() {
+          _provinces = data.cast<Map<String, dynamic>>();
+          _generatorIds = _provinces
+              .map((province) => province['provincial_council_id'].toString())
+              .toList();
+          _selectedProvince =
+              _generatorIds.isNotEmpty ? _generatorIds[0] : null;
+        });
+      } else {
+        print('Failed to fetch provinces: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed to fetch provinces. Please try again.')),
+        );
+      }
+    } catch (e) {
+      print('Exception: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again.')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _fetchDistricts(String provinceId) async {
+    final url =
+        'https://apigenerators.sooqgate.com/api/getlistdistricts/$provinceId';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> districtData =
+            json.decode(response.body); // Directly decode to a list
+
+        _districts.clear(); // Clear previous districts
+        _districts.addAll(districtData.map((district) {
+          return {
+            'district_council_id': district['district_council_id']
+                .toString(), // Ensure 'district_id' is a string
+            'name': district['name'],
+          };
+        }).toList());
+
+        setState(() {
+          _selectedDistrict = null; // Reset selected district
+        });
+      } else {
+        throw Exception('Failed to load districts');
+      }
+    } catch (e) {
+      print('Error fetching districts: $e'); // Debugging
+      // Handle errors appropriately
+    }
+  }
 
   int _selectedIndex = 0;
   final baseUrl = 'https://apigenerators.sooqgate.com/api/';
@@ -80,6 +156,16 @@ class _MainPageState extends State<MainPage> {
         final String? districtName = user?['district']?['name'] ?? 'Unknown';
         final String? role = user?['role']?['name'] ?? 'Unknown';
         final String? province = user?['province']?['name'] ?? 'Unknown';
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('token', token);
+        await prefs.setString('username', username!);
+        await prefs.setString('displayname', displayname!);
+        await prefs.setString('phone', phone!);
+        await prefs.setString('districtName', districtName!);
+        await prefs.setString('province', province!);
+        await prefs.setString('role', role!);
+        await prefs.setInt('userId', userId);
         if (kDebugMode) {
           print(token);
           print(user);
@@ -98,13 +184,13 @@ class _MainPageState extends State<MainPage> {
             MaterialPageRoute(
               builder: (context) => SubscriptionsAdminPage(
                 token: token,
-                username: username!,
+                username: username,
                 userId: userId,
-                displayname: displayname!,
-                phone: phone!,
-                districtName: districtName!,
-                province: province!,
-                role: role!,
+                displayname: displayname,
+                phone: phone,
+                districtName: districtName,
+                province: province,
+                role: role,
               ),
             ),
           );
@@ -147,13 +233,16 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    _fetchproviance();
     _checkLoginStatus();
   }
 
   void _checkLoginStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
+    setState(() {
+      _isLoading = false; // Stop loading after checking
+    });
     if (isLoggedIn) {
       String? token = prefs.getString('token');
       String? username = prefs.getString('username');
@@ -165,21 +254,41 @@ class _MainPageState extends State<MainPage> {
       int userId = prefs.getInt('userId') ?? 0;
 
       if (token != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(
-              token: token,
-              username: username,
-              phone: phone,
-              displayname: displayname,
-              districtName: districtName,
-              province: province,
-              role: role,
-              userId: userId,
+        if (role == 'GeneratorAdmin') {
+          // Navigate to SubscriptionsPage for GeneratorAdmin
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SubscriptionsAdminPage(
+                token: token,
+                username: username!,
+                userId: userId,
+                displayname: displayname!,
+                phone: phone!,
+                districtName: districtName!,
+                province: province!,
+                role: role!,
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          // Navigate to HomePage for other roles
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(
+                token: token,
+                userId: userId,
+                username: username,
+                displayname: displayname,
+                phone: phone,
+                districtName: districtName,
+                province: province,
+                role: role,
+              ),
+            ),
+          );
+        }
       }
     }
   }
@@ -241,88 +350,88 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 255, 255, 255),
-                  Color.fromARGB(255, 255, 255, 255)
-                ], // Two colors for the gradient
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              BottomNavyBar(
-                selectedIndex: _selectedIndex,
-                showElevation: true,
-                onItemSelected: (index) => setState(() {
-                  _selectedIndex = index;
-                }),
-                items: [
-                  BottomNavyBarItem(
-                    icon:
-                        Icon(Icons.login, size: _selectedIndex == 0 ? 20 : 20),
-                    title: _selectedIndex == 0
-                        ? const Text('تسجيل الدخول',
-                            style: TextStyle(fontSize: 10))
-                        : const SizedBox.shrink(),
-                    activeColor: Colors.teal,
-                    textAlign: TextAlign.center,
-                  ),
-                  BottomNavyBarItem(
-                    icon: Icon(Icons.app_registration,
-                        size: _selectedIndex == 1 ? 24 : 20),
-                    title: _selectedIndex == 1
-                        ? const Text(
-                            'التسجيل',
-                            style: TextStyle(fontSize: 12),
-                          )
-                        : const SizedBox.shrink(),
-                    activeColor: Colors.teal,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-              Expanded(
-                child: Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: SingleChildScrollView(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0, vertical: 20.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 15,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: _selectedIndex == 0
-                              ? _buildLoginForm()
-                              : _buildRegistrationForm(),
-                        ),
-                      ),
+      body: _isLoading // Show loading indicator if checking status
+          ? Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                // Background Gradient
+                Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 255, 255, 255),
+                        Color.fromARGB(255, 255, 255, 255)
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
+                Column(
+                  children: [
+                    BottomNavyBar(
+                      selectedIndex: _selectedIndex,
+                      showElevation: true,
+                      onItemSelected: (index) => setState(() {
+                        _selectedIndex = index;
+                      }),
+                      items: [
+                        BottomNavyBarItem(
+                          icon: Icon(Icons.login,
+                              size: _selectedIndex == 0 ? 24 : 20),
+                          title: _selectedIndex == 0
+                              ? const Text('تسجيل الدخول',
+                                  style: TextStyle(fontSize: 16))
+                              : const SizedBox.shrink(),
+                          activeColor: Colors.teal,
+                          textAlign: TextAlign.center,
+                        ),
+                        BottomNavyBarItem(
+                          icon: Icon(Icons.app_registration,
+                              size: _selectedIndex == 1 ? 24 : 20),
+                          title: _selectedIndex == 1
+                              ? const Text('التسجيل',
+                                  style: TextStyle(fontSize: 16))
+                              : const SizedBox.shrink(),
+                          activeColor: Colors.teal,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: SingleChildScrollView(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0, vertical: 20.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: _selectedIndex == 0
+                                    ? _buildLoginForm()
+                                    : _buildRegistrationForm(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
     );
   }
 
@@ -384,7 +493,7 @@ class _MainPageState extends State<MainPage> {
           ),
           const SizedBox(height: 24.0),
           ElevatedButton(
-            onPressed: _login,
+            onPressed: _isLoading ? null : _login,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Colors.teal,
@@ -566,36 +675,90 @@ class _MainPageState extends State<MainPage> {
             },
           ),
           const SizedBox(height: 16.0),
-          TextFormField(
-            controller: _nationalId,
-            decoration: InputDecoration(
-              labelText: 'رقم البطاقة الموحدة',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-              ),
-              filled: true,
-              fillColor: Colors.grey[200],
-              prefixIcon: const Icon(Icons.numbers),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+          DropdownButtonFormField<String>(
+            value: _selectedProvince,
+            hint: Text(
+              'اختر المحافظة',
+              style: GoogleFonts.almarai(),
             ),
-            textDirection: TextDirection.rtl,
-            textAlign: TextAlign.right,
-            keyboardType: TextInputType.number,
-            style: GoogleFonts.almarai(),
+            items: _provinces.map((province) {
+              return DropdownMenuItem<String>(
+                value: province['provincial_council_id'].toString(),
+                child: Text(
+                  '${province['name']}',
+                  style:
+                      GoogleFonts.almarai().copyWith(color: Colors.grey[700]),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedProvince = value;
+                _districts.clear();
+                _fetchDistricts(
+                    value!); // Fetch districts when province is selected
+              });
+            },
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'الرجاء ادخال رقم البطاقة الموحدة';
-              }
-              if (RegExp(r'^\d{12}$').hasMatch(value)) {
-                return 'الرجاء ادخال رقم البطاقة الصحيح';
+              if (value == null) {
+                return 'يرجى اختيار المحافظة';
               }
               return null;
             },
+            decoration: InputDecoration(
+              labelText: 'اختر المحافظة',
+              prefixIcon: Icon(Icons.electrical_services),
+              border: OutlineInputBorder(),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              hintStyle: TextStyle(color: Colors.grey),
+            ),
+            style: GoogleFonts.almarai(),
           ),
+          SizedBox(height: 20), // Spacing between dropdowns
+
+          // Dropdown for Districts
+          DropdownButtonFormField<String>(
+            value: _selectedDistrict,
+            hint: Text(
+              'اختر المدينة',
+              style: GoogleFonts.almarai(),
+            ),
+            items: _districts.map((district) {
+              return DropdownMenuItem<String>(
+                value: district['district_council_id'],
+                child: Text(
+                  district['name'],
+                  style:
+                      GoogleFonts.almarai().copyWith(color: Colors.grey[700]),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedDistrict = value; // Update selected district
+              });
+            },
+            validator: (value) {
+              if (value == null) {
+                return 'يرجى اختيار المدينة';
+              }
+              return null;
+            },
+            decoration: InputDecoration(
+              labelText: 'اختر المدينة',
+              prefixIcon: Icon(Icons.location_city),
+              border: OutlineInputBorder(),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              hintStyle: TextStyle(color: Colors.grey),
+            ),
+            style: GoogleFonts.almarai(),
+          ),
+          SizedBox(height: 20), // Spacing between dropdowns
           const SizedBox(height: 24.0),
           ElevatedButton(
-            onPressed: _register,
+            onPressed: _isLoading ? null : _register,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Colors.teal,

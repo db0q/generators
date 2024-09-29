@@ -43,7 +43,7 @@ class _SearchUserPageState extends State<SearchUserPage> {
         final userData = json.decode(response.body);
         if (userData['found']) {
           setState(() {
-            _userInfo = userData['user']; // Extract user object
+            _userInfo = userData['user'];
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -72,67 +72,108 @@ class _SearchUserPageState extends State<SearchUserPage> {
         title: const Text('البحث عن مستخدم'),
         backgroundColor: Colors.teal,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextField(
-                controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'أدخل رقم الهاتف',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _searchUser,
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('بحث'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-              if (_userInfo != null) ...[
-                const SizedBox(height: 20),
-                Text(
-                  'معلومات المستخدم:',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                Text('اسم المستخدم: ${_userInfo!['user_name']}'),
-                Text('الاسم المعروض: ${_userInfo!['name']}'),
-                Text('الهاتف: ${_userInfo!['phone']}'),
-                Text(
-                    'المجلس المحلي: ${_userInfo!['district_council']['name']}'),
-                Text(
-                    'مجلس المحافظة: ${_userInfo!['district_council']['provincial_council']['name']}'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => UserDataPage(
-                          userInfo: _userInfo!,
-                          genids: widget.genids,
-                          token: widget.token,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _phoneController,
+                    decoration: InputDecoration(
+                      labelText: 'أدخل رقم الهاتف',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 10),
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _searchUser,
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('بحث'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  if (_userInfo != null) ...[
+                    const SizedBox(height: 20),
+                    Text(
+                      'معلومات المستخدم:',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildUserInfoCard(context),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => UserDataPage(
+                              userInfo: _userInfo!,
+                              genids: widget.genids,
+                              token: widget.token,
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text('عرض وتحرير بيانات المستخدم'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                    );
-                  },
-                  child: const Text('عرض وتحرير بيانات المستخدم'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                ),
-              ],
-            ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserInfoCard(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('اسم المستخدم: ${_userInfo!['user_name']}'),
+            Text('الاسم المعروض: ${_userInfo!['name']}'),
+            Text('الهاتف: ${_userInfo!['phone']}'),
+            Text('المجلس المحلي: ${_userInfo!['district_council']['name']}'),
+            Text(
+                'مجلس المحافظة: ${_userInfo!['district_council']['provincial_council']['name']}'),
+          ],
         ),
       ),
     );

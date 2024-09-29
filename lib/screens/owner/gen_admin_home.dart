@@ -118,7 +118,7 @@ class _SubscriptionsPageState extends State<SubscriptionsAdminPage> {
           Column(
             children: [
               Container(
-                height: 80,
+                height: 100,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -133,6 +133,8 @@ class _SubscriptionsPageState extends State<SubscriptionsAdminPage> {
                 child: Row(
                   children: [
                     IconButton(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 52, horizontal: 22),
                       icon: Icon(Icons.person, color: Colors.white),
                       onPressed: () {
                         Navigator.push(
@@ -158,15 +160,15 @@ class _SubscriptionsPageState extends State<SubscriptionsAdminPage> {
                             fetchSubscriptions();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal,
+                            backgroundColor: Colors.teal.shade200,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                             padding: EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 20),
+                                vertical: 0, horizontal: 0),
                           ),
                           child: Text(
-                            'الصفحة الرئيسية',
+                            '',
                             style: GoogleFonts.cairo(
                               textStyle: const TextStyle(
                                 fontSize: 16.0,
@@ -179,7 +181,12 @@ class _SubscriptionsPageState extends State<SubscriptionsAdminPage> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.add, color: Colors.white),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 52, horizontal: 22),
+                      icon: Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
